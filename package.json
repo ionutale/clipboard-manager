@@ -19,7 +19,11 @@
     "lint": "eslint . --ext .ts,.svelte",
     "format": "prettier --write ."
   },
-  "keywords": ["clipboard", "manager", "electron"],
+  "keywords": [
+    "clipboard",
+    "manager",
+    "electron"
+  ],
   "author": "",
   "license": "MIT",
   "devDependencies": {
@@ -55,13 +59,22 @@
     ],
     "mac": {
       "category": "public.app-category.productivity",
-      "target": ["dmg", "zip"]
+      "target": [
+        "dmg",
+        "zip"
+      ]
     },
     "win": {
-      "target": ["nsis", "portable"]
+      "target": [
+        "nsis",
+        "portable"
+      ]
     },
     "linux": {
-      "target": ["AppImage", "deb"],
+      "target": [
+        "AppImage",
+        "deb"
+      ],
       "category": "Utility"
     }
   }

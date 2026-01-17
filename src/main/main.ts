@@ -39,13 +39,13 @@ function startClipboardMonitoring() {
   // Check clipboard every 500ms
   setInterval(() => {
     const currentText = clipboard.readText();
-    
+
     if (currentText && currentText !== previousText) {
       previousText = currentText;
-      
+
       // Add to history, avoiding duplicates
       clipboardHistory = [currentText, ...clipboardHistory.filter(item => item !== currentText)];
-      
+
       // Limit history size
       if (clipboardHistory.length > MAX_HISTORY) {
         clipboardHistory = clipboardHistory.slice(0, MAX_HISTORY);
