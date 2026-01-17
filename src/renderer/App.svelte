@@ -1,11 +1,16 @@
 <script lang="ts">
   import { onMount } from 'svelte';
 
-  let clipboardHistory: string[] = [];
+  interface ClipboardItem {
+    content: string;
+    timestamp: number;
+  }
+
+  let clipboardHistory: ClipboardItem[] = [];
   let searchQuery = '';
 
   $: filteredHistory = clipboardHistory.filter((item) =>
-    item.toLowerCase().includes(searchQuery.toLowerCase())
+    item.content.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   onMount(async () => {
@@ -28,6 +33,12 @@
 
   async function copyItem(text: string) {
     await window.electronAPI.copyToClipboard(text);
+  }
+
+  function formatTime(timestamp: number) {
+    // Format timestamp to 24h format
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
   }
 
   async function clearHistory() {
@@ -61,11 +72,16 @@
         <p class="hint">Copy something to get started!</p>
       </div>
     {:else}
-      {#each filteredHistory as item, index (item)}
-        <button class="history-item" on:click={() => copyItem(item)}>
+      {#each filteredHistory as item, index (item.timestamp)}
+        <button class="history-item" on:click={() => copyItem(item.content)}>
           <div class="item-number">{index + 1}</div>
-          <div class="item-content">
-            {item}
+          <div class="item-details">
+            <div class="item-content">
+              {item.content}
+            </div>
+            <div class="item-meta">
+              {formatTime(item.timestamp)}
+            </div>
           </div>
         </button>
       {/each}
@@ -198,8 +214,8 @@
 
   .item-number {
     flex-shrink: 0;
-    width: 30px;
-    height: 30px;
+    width: 24px;
+    height: 24px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -207,17 +223,32 @@
     color: white;
     border-radius: 50%;
     font-weight: bold;
-    font-size: 12px;
+    font-size: 11px;
+    margin-top: 2px;
+  }
+
+  .item-details {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
   }
 
   .item-content {
-    flex: 1;
     overflow: hidden;
     text-overflow: ellipsis;
     display: -webkit-box;
-    -webkit-line-clamp: 3;
+    -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
-    line-height: 1.5;
+    line-height: 1.4;
+    font-size: 13px;
+    color: #e0e0e0;
+  }
+
+  .item-meta {
+    font-size: 11px;
+    color: #888;
   }
 
   .empty-state {

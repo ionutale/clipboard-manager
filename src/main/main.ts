@@ -7,7 +7,7 @@ const __dirname = path.dirname(__filename);
 
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
-let clipboardHistory: string[] = [];
+let clipboardHistory: { content: string; timestamp: number }[] = [];
 const MAX_HISTORY = 100;
 
 function createWindow() {
@@ -108,8 +108,9 @@ function startClipboardMonitoring() {
       console.log('[Clipboard] New content detected:', currentText.slice(0, 100));
       previousText = currentText;
 
-      // Add to history, avoiding duplicates
-      clipboardHistory = [currentText, ...clipboardHistory.filter(item => item !== currentText)];
+      // Add to history, avoiding duplicates based on content
+      const newItem = { content: currentText, timestamp: Date.now() };
+      clipboardHistory = [newItem, ...clipboardHistory.filter(item => item.content !== currentText)];
 
       // Limit history size
       if (clipboardHistory.length > MAX_HISTORY) {

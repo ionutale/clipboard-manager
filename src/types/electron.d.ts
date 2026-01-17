@@ -1,8 +1,13 @@
+export interface ClipboardItem {
+  content: string;
+  timestamp: number;
+}
+
 export interface ElectronAPI {
-  getClipboardHistory: () => Promise<string[]>;
+  getClipboardHistory: () => Promise<ClipboardItem[]>;
   copyToClipboard: (text: string) => Promise<boolean>;
   clearHistory: () => Promise<boolean>;
-  onClipboardUpdate: (callback: (history: string[]) => void) => void;
+  onClipboardUpdate: (callback: (history: ClipboardItem[]) => void) => void;
 }
 
 declare global {
