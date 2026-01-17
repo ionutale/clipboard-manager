@@ -11,9 +11,11 @@
   onMount(async () => {
     // Load initial history
     clipboardHistory = await window.electronAPI.getClipboardHistory();
+    console.log('[Renderer] Initial history loaded:', clipboardHistory.length, 'items');
 
     // Listen for updates
     window.electronAPI.onClipboardUpdate((history) => {
+      console.log('[Renderer] Received clipboard update:', history.length, 'items');
       clipboardHistory = history;
     });
   });

@@ -22,7 +22,7 @@ function createWindow() {
 
   // In development, load from Vite dev server
   if (!app.isPackaged) {
-    mainWindow.loadURL('http://localhost:5173');
+    mainWindow.loadURL('http://localhost:5174');
     mainWindow.webContents.openDevTools();
   } else {
     mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
@@ -35,12 +35,14 @@ function createWindow() {
 
 function startClipboardMonitoring() {
   let previousText = clipboard.readText();
+  console.log('[Clipboard] Initial text:', previousText ? `"${previousText.slice(0, 50)}..."` : '(empty)');
 
   // Check clipboard every 500ms
   setInterval(() => {
     const currentText = clipboard.readText();
 
     if (currentText && currentText !== previousText) {
+      console.log('[Clipboard] New content detected:', currentText.slice(0, 100));
       previousText = currentText;
 
       // Add to history, avoiding duplicates
@@ -51,9 +53,12 @@ function startClipboardMonitoring() {
         clipboardHistory = clipboardHistory.slice(0, MAX_HISTORY);
       }
 
+      console.log('[Clipboard] History size:', clipboardHistory.length);
+
       // Notify renderer
       if (mainWindow) {
         mainWindow.webContents.send('clipboard-update', clipboardHistory);
+        console.log('[Clipboard] Sent update to renderer');
       }
     }
   }, 500);

@@ -7,6 +7,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   copyToClipboard: (text: string) => ipcRenderer.invoke('copy-to-clipboard', text),
   clearHistory: () => ipcRenderer.invoke('clear-history'),
   onClipboardUpdate: (callback: (history: string[]) => void) => {
-    ipcRenderer.on('clipboard-update', (_event, history) => callback(history));
+    const listener = (_event: Electron.IpcRendererEvent, history: string[]) => callback(history);
+    ipcRenderer.on('clipboard-update', listener);
+    // Return cleanup function
+    return () => ipcRenderer.removeListener('clipboard-update', listener);
   },
 });
