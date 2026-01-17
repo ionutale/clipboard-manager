@@ -1,0 +1,21 @@
+// swift-tools-version: 5.9
+import PackageDescription
+
+let package = Package(
+    name: "ClipboardManager",
+    platforms: [
+        .macOS(.v12)
+    ],
+    products: [
+        .executable(name: "ClipboardManager", targets: ["ClipboardManager"])
+    ],
+    targets: [
+        .executableTarget(
+            name: "ClipboardManager",
+            path: "ClipboardManager",
+            resources: [
+                .process("Info.plist")
+            ]
+        )
+    ]
+)

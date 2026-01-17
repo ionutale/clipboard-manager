@@ -5,35 +5,52 @@ This file guides AI agents (GitHub Copilot) working in the Clipboard Manager cod
 ## Project Context
 
 - **Name**: Clipboard Manager
-- **Tech Stack**: Electron + TypeScript + Svelte + Vite + pnpm
-- **Architecture**: Multi-process Electron app with secure IPC communication
-  - **Main Process** ([src/main/main.ts](src/main/main.ts)): Handles clipboard monitoring, global shortcuts, window lifecycle
-  - **Preload Script** ([src/main/preload.ts](src/main/preload.ts)): Secure IPC bridge using `contextBridge`
-  - **Renderer Process** ([src/renderer/](src/renderer/)): Svelte UI compiled by Vite
+- **Tech Stack**:
+  - **Primary**: Electron + TypeScript + Svelte + Vite + pnpm
+  - **Native macOS**: Swift + SwiftUI (located in `xcode/ClipboardManager`)
+- **Architecture**:
+  - **Electron**: Multi-process app with secure IPC communication
+    - **Main Process** ([src/main/main.ts](src/main/main.ts)): Handles clipboard monitoring, system tray (Menu Bar Extra), window lifecycle
+    - **Preload Script** ([src/main/preload.cjs](src/main/preload.cjs)): Secure CommonJS IPC bridge
+    - **Renderer Process** ([src/renderer/](src/renderer/)): Svelte UI compiled by Vite
+  - **Native**: macOS Status Bar app usingpopovers, built with Swift Package Manager
 
 ## Core Architecture Principles
 
-### Process Separation & Security
+### Process Separation & Security (Electron)
 
 - Main process has full Node.js/Electron API access; renderer is sandboxed
-- **Never** use `nodeIntegration: true` or disable `contextIsolation`
 - All IPC must go through the preload script's `contextBridge`
 - Type-safe IPC: Define contracts in [src/types/electron.d.ts](src/types/electron.d.ts)
 
+### Native macOS Pattern (Swift)
+
+- Lives in `xcode/ClipboardManager`
+- Uses system `NSPasteboard` polling (0.5s interval)
+- `LSUIElement = true` is implied to stay in the menu bar
+- UI built with SwiftUI `LazyVStack` for performance
+
 ### Clipboard Monitoring Pattern
 
-- Polling-based monitoring (500ms interval) in main process
+- Polling-based monitoring (500ms interval) in both implementations
 - Deduplication: New entries move to top, removing old duplicates
-- Max history limit (100 items) enforced via array slicing
-- Updates pushed to renderer via `webContents.send('clipboard-update')`
+- Updates pushed to renderer (Electron) or State (Swift)
 
 ## Development Workflows
+
+### Electron
 
 ```bash
 pnpm dev          # Concurrent Vite dev server + Electron (hot reload for renderer)
 pnpm build        # Compile both processes (Vite for renderer, tsc for main)
-pnpm typecheck    # Check types across both tsconfigs
-pnpm package      # Build + package for current platform
+```
+
+### Native macOS
+
+```bash
+cd xcode/ClipboardManager
+swift run         # Run via Swift Package Manager
+# Or open Package.swift in Xcode to build/debug
 ```
 
 ### TypeScript Configuration
