@@ -54,12 +54,12 @@
       </div>
     {:else}
       {#each filteredHistory as item, index (item)}
-        <div class="history-item" on:click={() => copyItem(item)}>
+        <button class="history-item" on:click={() => copyItem(item)}>
           <div class="item-number">{index + 1}</div>
           <div class="item-content">
             {item}
           </div>
-        </div>
+        </button>
       {/each}
     {/if}
   </div>
@@ -149,6 +149,11 @@
     border-radius: 6px;
     cursor: pointer;
     transition: all 0.2s;
+    width: 100%;
+    text-align: left;
+    font-family: inherit;
+    color: inherit;
+    font-size: inherit;
   }
 
   .history-item:hover {

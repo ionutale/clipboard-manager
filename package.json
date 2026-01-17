@@ -5,9 +5,10 @@
   "main": "dist/main/main.js",
   "type": "module",
   "scripts": {
-    "dev": "concurrently \"pnpm:dev:vite\" \"pnpm:dev:electron\"",
+    "dev": "concurrently \"pnpm:dev:vite\" \"pnpm:dev:tsc\" \"pnpm:dev:electron\"",
     "dev:vite": "vite",
-    "dev:electron": "tsc -p tsconfig.main.json && electron .",
+    "dev:tsc": "tsc -p tsconfig.main.json --watch --preserveWatchOutput",
+    "dev:electron": "wait-on dist/main/main.js && electron .",
     "build": "pnpm build:renderer && pnpm build:main",
     "build:renderer": "vite build",
     "build:main": "tsc -p tsconfig.main.json",
@@ -42,7 +43,8 @@
     "svelte": "^4.2.8",
     "svelte-check": "^3.6.3",
     "typescript": "^5.3.3",
-    "vite": "^5.0.11"
+    "vite": "^5.0.11",
+    "wait-on": "^7.2.0"
   },
   "dependencies": {
     "electron-store": "^8.1.0"
