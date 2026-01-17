@@ -9,13 +9,19 @@
   );
 
   onMount(async () => {
-    // Load initial history
-    clipboardHistory = await window.electronAPI.getClipboardHistory();
-    console.log('[Renderer] Initial history loaded:', clipboardHistory.length, 'items');
+    console.log('[Renderer] Component mounted, electronAPI available:', !!window.electronAPI);
+
+    try {
+      // Load initial history
+      clipboardHistory = await window.electronAPI.getClipboardHistory();
+      console.log('[Renderer] Initial history loaded:', clipboardHistory);
+    } catch (error) {
+      console.error('[Renderer] Error loading history:', error);
+    }
 
     // Listen for updates
     window.electronAPI.onClipboardUpdate((history) => {
-      console.log('[Renderer] Received clipboard update:', history.length, 'items');
+      console.log('[Renderer] Received clipboard update:', history);
       clipboardHistory = history;
     });
   });

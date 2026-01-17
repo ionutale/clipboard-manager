@@ -7,8 +7,8 @@
   "scripts": {
     "dev": "concurrently \"pnpm:dev:vite\" \"pnpm:dev:tsc\" \"pnpm:dev:electron\"",
     "dev:vite": "vite",
-    "dev:tsc": "tsc -p tsconfig.main.json --watch --preserveWatchOutput",
-    "dev:electron": "wait-on dist/main/main.js && electron .",
+    "dev:tsc": "tsc -p tsconfig.main.json --watch --preserveWatchOutput && cp src/main/preload.cjs dist/main/",
+    "dev:electron": "wait-on dist/main/main.js http://localhost:5173 && cp src/main/preload.cjs dist/main/ && electron .",
     "build": "pnpm build:renderer && pnpm build:main",
     "build:renderer": "vite build",
     "build:main": "tsc -p tsconfig.main.json",
