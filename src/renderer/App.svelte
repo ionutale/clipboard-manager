@@ -79,31 +79,39 @@
     padding: 0;
     font-family:
       -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    background: #1e1e1e;
+    background: transparent; /* Transparent for frameless window effect */
     color: #e0e0e0;
+    overflow: hidden;
   }
 
   main {
-    padding: 20px;
-    max-width: 800px;
-    margin: 0 auto;
+    padding: 12px;
+    height: 100vh; /* Full height */
+    box-sizing: border-box;
+    background: #1e1e1e; /* Solid background for content */
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #444; /* Subtle border */
+    border-radius: 8px; /* Rounded corners */
   }
 
   header {
     text-align: center;
-    margin-bottom: 30px;
+    margin-bottom: 16px;
+    -webkit-app-region: drag; /* Allow window dragging */
+    cursor: default;
   }
 
   h1 {
     margin: 0;
-    font-size: 2em;
+    font-size: 1.4em;
     color: #fff;
   }
 
   .subtitle {
-    margin: 5px 0 0 0;
+    margin: 2px 0 0 0;
     color: #888;
-    font-size: 0.9em;
+    font-size: 0.8em;
   }
 
   .controls {
@@ -146,6 +154,24 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
+    overflow-y: auto;
+    flex: 1;
+    padding-right: 4px;
+  }
+
+  /* Scrollbar Styling */
+  .history::-webkit-scrollbar {
+    width: 6px;
+  }
+  .history::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .history::-webkit-scrollbar-thumb {
+    background: #444;
+    border-radius: 3px;
+  }
+  .history::-webkit-scrollbar-thumb:hover {
+    background: #555;
   }
 
   .history-item {
