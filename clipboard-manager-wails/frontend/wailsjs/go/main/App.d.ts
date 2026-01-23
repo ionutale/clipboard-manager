@@ -7,3 +7,5 @@ export function CopyToClipboard(arg1:services.ClipboardItem):Promise<void>;
 export function GetHistory():Promise<Array<services.ClipboardItem>>;
 
 export function Greet(arg1:string):Promise<string>;
+
+export function Quit():Promise<void>;

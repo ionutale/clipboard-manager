@@ -9,5 +9,8 @@
   "author": {
     "name": "Ion Utale",
     "email": "utale.ion@gmail.com"
+  },
+  "info": {
+    "LSUIElement": true
   }
 }

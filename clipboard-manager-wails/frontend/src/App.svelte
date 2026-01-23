@@ -1,6 +1,6 @@
 <script>
   import { onMount } from 'svelte';
-  import { GetHistory, CopyToClipboard } from '../wailsjs/go/main/App.js';
+  import { GetHistory, CopyToClipboard, Quit } from '../wailsjs/go/main/App.js';
   import { EventsOn } from '../wailsjs/runtime/runtime.js';
 
   let history = [];
@@ -16,6 +16,10 @@
 
   function handleCopy(item) {
     CopyToClipboard(item);
+  }
+  
+  function quitApp() {
+    Quit();
   }
 
   onMount(() => {
@@ -37,6 +41,7 @@
 <main>
   <div class="header">
     <input bind:value={searchText} placeholder="Search history..." />
+    <button on:click={quitApp} class="quit-btn">Quit</button>
   </div>
 
   <div class="list">

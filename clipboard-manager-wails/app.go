@@ -11,10 +11,11 @@ import (
 
 // App struct
 type App struct {
-	ctx       context.Context
-	db        *services.DatabaseService
-	storage   *services.StorageService
-	clipboard *services.ClipboardService
+	ctx        context.Context
+	db         *services.DatabaseService
+	storage    *services.StorageService
+	clipboard  *services.ClipboardService
+	shouldQuit bool
 }
 
 // NewApp creates a new App application struct
@@ -76,4 +77,10 @@ func (a *App) CopyToClipboard(item services.ClipboardItem) {
 // Greet returns a greeting for the given name
 func (a *App) Greet(name string) string {
 	return fmt.Sprintf("Hello %s, It's show time!", name)
+}
+
+// Quit quits the application
+func (a *App) Quit() {
+	a.shouldQuit = true
+	runtime.Quit(a.ctx)
 }
