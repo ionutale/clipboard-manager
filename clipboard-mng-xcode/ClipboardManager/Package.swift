@@ -12,10 +12,7 @@ let package = Package(
     targets: [
         .executableTarget(
             name: "ClipboardManager",
-            path: "ClipboardManager",
-            resources: [
-                .process("Info.plist")
-            ]
+            path: "ClipboardManager"
         )
     ]
 )
