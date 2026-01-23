@@ -8,7 +8,16 @@ struct MainView: View {
         if searchText.isEmpty {
             return manager.history
         } else {
-            return manager.history.filter { $0.content.localizedCaseInsensitiveContains(searchText) }
+            return manager.history.filter { item in
+                switch item.type {
+                case .text:
+                    return item.content.localizedCaseInsensitiveContains(searchText)
+                case .file:
+                    return item.content.localizedCaseInsensitiveContains(searchText)
+                case .image:
+                    return false
+                }
+            }
         }
     }
     
@@ -56,7 +65,7 @@ struct MainView: View {
             LazyVStack(spacing: 8) {
                 ForEach(filteredHistory) { item in
                     HistoryItemView(item: item) {
-                        manager.copyToClipboard(item.content)
+                        manager.copyToClipboard(item)
                     }
                 }
             }
@@ -124,15 +133,32 @@ struct HistoryItemView: View {
     
     var body: some View {
         Button(action: action) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(item.content)
-                    .lineLimit(2)
-                    .font(.system(size: 13))
-                    .frame(maxWidth: .infinity, alignment: .leading)
+            HStack(spacing: 8) {
+                // Type Icon
+                Group {
+                    switch item.type {
+                    case .text:
+                        Image(systemName: "text.alignleft")
+                            .foregroundColor(.blue)
+                    case .image:
+                        Image(systemName: "photo")
+                            .foregroundColor(.purple)
+                    case .file:
+                        Image(systemName: "doc")
+                            .foregroundColor(.orange)
+                    }
+                }
+                .font(.system(size: 16))
+                .frame(width: 24)
                 
-                Text(item.timestamp.formatted(date: .omitted, time: .shortened))
-                    .font(.system(size: 10))
-                    .foregroundColor(.secondary)
+                VStack(alignment: .leading, spacing: 4) {
+                    contentView
+                    
+                    Text(item.timestamp.formatted(date: .omitted, time: .shortened))
+                        .font(.system(size: 10))
+                        .foregroundColor(.secondary)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
             .padding(8)
             .background(isHovering ? Color.accentColor.opacity(0.1) : Color(.controlBackgroundColor).opacity(0.5))
@@ -141,6 +167,32 @@ struct HistoryItemView: View {
         .buttonStyle(.plain)
         .onHover { hovering in
             isHovering = hovering
+        }
+    }
+    
+    @ViewBuilder
+    var contentView: some View {
+        switch item.type {
+        case .text:
+            Text(item.content)
+                .lineLimit(2)
+                .font(.system(size: 13))
+        case .image:
+            if let image = NSImage(contentsOfFile: item.content) {
+                Image(nsImage: image)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(height: 50)
+                    .cornerRadius(4)
+            } else {
+                Text("Image missing")
+                    .italic()
+                    .font(.caption)
+            }
+        case .file:
+            Text(URL(fileURLWithPath: item.content).lastPathComponent)
+                .lineLimit(1)
+                .font(.system(size: 13))
         }
     }
 }
