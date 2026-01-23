@@ -43,3 +43,7 @@ npm-debug.log*
 
 # asdf
 .tool-versions.local
+
+# Temporary icon generation files
+assets/icon.iconset/
+assets/*.bmp
