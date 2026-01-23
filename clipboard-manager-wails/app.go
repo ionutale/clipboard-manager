@@ -2,6 +2,7 @@ package main
 
 import (
 	"clipboard-manager-wails/services"
+	"clipboard-manager-wails/tray"
 	"context"
 	"fmt"
 
@@ -43,6 +44,9 @@ func NewApp() *App {
 // so we can call the runtime methods
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
+	
+	// Setup System Tray
+	tray.SetupTray(ctx)
 	
 	// Hook up the callback
 	a.clipboard.OnNewItem = func(item services.ClipboardItem) {
