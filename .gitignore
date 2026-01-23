@@ -6,6 +6,19 @@ dist/
 release/
 out/
 
+# Xcode / Swift
+.build/
+.swiftpm/
+DerivedData/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/
+
+# Wails / Go
+clipboard-manager-wails/build/bin/
+clipboard-manager-wails/frontend/dist/
+clipboard-manager-wails/frontend/node_modules/
+
 # IDE
 .vscode/*
 !.vscode/extensions.json
