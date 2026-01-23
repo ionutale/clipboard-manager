@@ -26,7 +26,7 @@
       CopyToClipboard(item);
     }
   }
-  
+
   function quitApp() {
     Quit();
   }
@@ -41,13 +41,14 @@
   async function unlock() {
     try {
       kdbxData = await UnlockKdbx(kdbxPath, kdbxPassword);
-    } catch(e) {
+    } catch (e) {
       alert('Failed to unlock: ' + e);
     }
   }
-  
+
   function closeKdbx() {
-      showKdbxModal = false;
+    showKdbxModal = false;
+  }
 
   onMount(() => {
     loadHistory();
