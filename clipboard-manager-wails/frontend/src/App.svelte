@@ -17,7 +17,7 @@
   function handleCopy(item) {
     CopyToClipboard(item);
   }
-  
+
   function quitApp() {
     Quit();
   }
