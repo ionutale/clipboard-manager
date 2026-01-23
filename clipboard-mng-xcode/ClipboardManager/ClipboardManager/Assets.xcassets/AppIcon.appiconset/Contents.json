@@ -1,12 +1,12 @@
 {
-  "images" : [
+  "images": [
     {
-      "filename" : "AppIcon.icns",
-      "idiom" : "mac"
+      "filename": "AppIcon.icns",
+      "idiom": "mac"
     }
   ],
-  "info" : {
-    "author" : "xcode",
-    "version" : 1
+  "info": {
+    "author": "xcode",
+    "version": 1
   }
 }
