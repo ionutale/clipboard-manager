@@ -1,5 +1,4 @@
 package services
-package services
 
 import (
 	"time"
@@ -16,7 +15,6 @@ const (
 type ClipboardItem struct {
 	ID        string            `json:"id"`
 	Content   string            `json:"content"` // Text content or File Path
-
-
-
-}	Timestamp time.Time         `json:"timestamp"`	Type      ClipboardItemType `json:"type"`
+	Type      ClipboardItemType `json:"type"`
+	Timestamp time.Time         `json:"timestamp"`
+}

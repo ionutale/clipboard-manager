@@ -1,9 +1,10 @@
 package main
 
 import (
+	"clipboard-manager-wails/services"
 	"context"
 	"fmt"
-	"clipboard-manager-wails/services"
+
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 

@@ -1,0 +1,15 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Run Wails Dev",
+			"type": "shell",
+			"command": "/Users/ionutale/.asdf/installs/golang/1.25.5/packages/bin/wails dev",
+			"isBackground": true,
+			"problemMatcher": [
+				"$go"
+			],
+			"group": "build"
+		}
+	]
+}
