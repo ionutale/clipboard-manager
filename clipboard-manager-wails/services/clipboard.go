@@ -3,6 +3,8 @@ package services
 import (
 	"context"
 	"fmt"
+	"os"
+	"strings"
 	"time"
 
 	"golang.design/x/clipboard"
@@ -50,6 +52,14 @@ func (s *ClipboardService) watchText() {
 			Type:      TypeClipboardText,
 			Timestamp: time.Now(),
 		}
+
+		// Check for KDBX file
+		if strings.HasSuffix(strings.ToLower(text), ".kdbx") {
+			if _, err := os.Stat(text); err == nil {
+				item.Type = TypeClipboardKDBX
+			}
+		}
+
 		s.processItem(item)
 	}
 }

@@ -84,3 +84,8 @@ func (a *App) Quit() {
 	a.shouldQuit = true
 	runtime.Quit(a.ctx)
 }
+
+// UnlockKdbx tries to unlock a kdbx file
+func (a *App) UnlockKdbx(path string, password string) (services.KdbxGroup, error) {
+	return services.UnlockKdbx(path, password)
+}

@@ -10,6 +10,7 @@ const (
 	TypeClipboardText  ClipboardItemType = "text"
 	TypeClipboardImage ClipboardItemType = "image"
 	TypeClipboardFile  ClipboardItemType = "file"
+	TypeClipboardKDBX  ClipboardItemType = "kdbx"
 )
 
 type ClipboardItem struct {
