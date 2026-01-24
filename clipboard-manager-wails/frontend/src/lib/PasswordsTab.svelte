@@ -24,43 +24,43 @@
   }
 
   function clear() {
-      kdbxData = null;
-      kdbxPassword = '';
-      kdbxPath = '';
+    kdbxData = null;
+    kdbxPassword = '';
+    kdbxPath = '';
   }
 </script>
 
 <div class="tab-container">
-    <div class="header">
-        <h2>Passwords (KDBX)</h2>
-        <div class="controls">
-            <input bind:value={kdbxPath} placeholder="File path to .kdbx" />
-            {#if kdbxData}
-                <button on:click={clear}>Lock / Close</button>
-            {/if}
-        </div>
+  <div class="header">
+    <h2>Passwords (KDBX)</h2>
+    <div class="controls">
+      <input bind:value={kdbxPath} placeholder="File path to .kdbx" />
+      {#if kdbxData}
+        <button on:click={clear}>Lock / Close</button>
+      {/if}
     </div>
+  </div>
 
-    <div class="content-area">
-        {#if !kdbxData}
-            <div class="auth-box">
-                <input
-                type="password"
-                bind:value={kdbxPassword}
-                placeholder="Master Password"
-                on:keydown={(e) => e.key === 'Enter' && unlock()}
-                />
-                <button on:click={unlock}>Unlock</button>
-            </div>
-             {#if !kdbxPath}
-                <p class="hint">Select a .kdbx file from clipboard or enter path above.</p>
-            {/if}
-        {:else}
-            <div class="tree-view">
-                <ul><Tree group={kdbxData} /></ul>
-            </div>
-        {/if}
-    </div>
+  <div class="content-area">
+    {#if !kdbxData}
+      <div class="auth-box">
+        <input
+          type="password"
+          bind:value={kdbxPassword}
+          placeholder="Master Password"
+          on:keydown={(e) => e.key === 'Enter' && unlock()}
+        />
+        <button on:click={unlock}>Unlock</button>
+      </div>
+      {#if !kdbxPath}
+        <p class="hint">Select a .kdbx file from clipboard or enter path above.</p>
+      {/if}
+    {:else}
+      <div class="tree-view">
+        <ul><Tree group={kdbxData} /></ul>
+      </div>
+    {/if}
+  </div>
 </div>
 
 <style>
@@ -73,15 +73,18 @@
   }
 
   .header {
-      margin-bottom: 20px;
-  }
-  
-  .controls {
-      display: flex;
-      gap: 10px;
+    margin-bottom: 20px;
   }
 
-  h2 { margin: 0 0 10px 0; font-size: 1.2rem; }
+  .controls {
+    display: flex;
+    gap: 10px;
+  }
+
+  h2 {
+    margin: 0 0 10px 0;
+    font-size: 1.2rem;
+  }
 
   input {
     flex: 1;
@@ -91,33 +94,33 @@
   }
 
   .content-area {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      overflow: hidden;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow: hidden;
   }
 
   .auth-box {
-      display: flex;
-      gap: 10px;
-      justify-content: center;
-      align-items: center;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
   }
 
   .tree-view {
-      flex: 1;
-      overflow-y: auto;
-      text-align: left;
-      border: 1px solid #eee;
-      padding: 10px;
-      background: white;
-      border-radius: 4px;
+    flex: 1;
+    overflow-y: auto;
+    text-align: left;
+    border: 1px solid #eee;
+    padding: 10px;
+    background: white;
+    border-radius: 4px;
   }
 
   .hint {
-      text-align: center;
-      color: #777;
-      margin-top: 20px;
+    text-align: center;
+    color: #777;
+    margin-top: 20px;
   }
 </style>

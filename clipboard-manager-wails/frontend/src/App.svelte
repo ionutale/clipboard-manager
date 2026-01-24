@@ -23,13 +23,25 @@
 
 <main>
   <nav class="sidebar-nav">
-    <div class="nav-item {activeTab === 'clipboard' ? 'active' : ''}" on:click={() => switchTab('clipboard')} title="Clipboard">
+    <div
+      class="nav-item {activeTab === 'clipboard' ? 'active' : ''}"
+      on:click={() => switchTab('clipboard')}
+      title="Clipboard"
+    >
       <span class="icon">📋</span>
     </div>
-    <div class="nav-item {activeTab === 'passwords' ? 'active' : ''}" on:click={() => switchTab('passwords')} title="Passwords">
+    <div
+      class="nav-item {activeTab === 'passwords' ? 'active' : ''}"
+      on:click={() => switchTab('passwords')}
+      title="Passwords"
+    >
       <span class="icon">🔐</span>
     </div>
-    <div class="nav-item {activeTab === 'notes' ? 'active' : ''}" on:click={() => switchTab('notes')} title="Notes">
+    <div
+      class="nav-item {activeTab === 'notes' ? 'active' : ''}"
+      on:click={() => switchTab('notes')}
+      title="Notes"
+    >
       <span class="icon">📝</span>
     </div>
     <div class="spacer"></div>
@@ -55,7 +67,9 @@
   main {
     height: 100vh;
     display: flex;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+    font-family:
+      -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans',
+      'Helvetica Neue', sans-serif;
     overflow: hidden;
   }
 
@@ -91,7 +105,7 @@
   .nav-item.active {
     background-color: #4299e1;
     opacity: 1;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   }
 
   .spacer {
