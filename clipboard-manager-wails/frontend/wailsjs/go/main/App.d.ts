@@ -4,10 +4,18 @@ import {services} from '../models';
 
 export function CopyToClipboard(arg1:services.ClipboardItem):Promise<void>;
 
+export function CreateNote(arg1:string,arg2:string):Promise<services.Note>;
+
+export function DeleteNote(arg1:string):Promise<void>;
+
 export function GetHistory():Promise<Array<services.ClipboardItem>>;
+
+export function GetNotes():Promise<Array<services.Note>>;
 
 export function Greet(arg1:string):Promise<string>;
 
 export function Quit():Promise<void>;
 
 export function UnlockKdbx(arg1:string,arg2:string):Promise<services.KdbxGroup>;
+
+export function UpdateNote(arg1:string,arg2:string,arg3:string):Promise<void>;

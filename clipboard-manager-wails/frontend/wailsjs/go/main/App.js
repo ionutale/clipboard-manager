@@ -6,8 +6,20 @@ export function CopyToClipboard(arg1) {
   return window['go']['main']['App']['CopyToClipboard'](arg1);
 }
 
+export function CreateNote(arg1, arg2) {
+  return window['go']['main']['App']['CreateNote'](arg1, arg2);
+}
+
+export function DeleteNote(arg1) {
+  return window['go']['main']['App']['DeleteNote'](arg1);
+}
+
 export function GetHistory() {
   return window['go']['main']['App']['GetHistory']();
+}
+
+export function GetNotes() {
+  return window['go']['main']['App']['GetNotes']();
 }
 
 export function Greet(arg1) {
@@ -20,4 +32,8 @@ export function Quit() {
 
 export function UnlockKdbx(arg1, arg2) {
   return window['go']['main']['App']['UnlockKdbx'](arg1, arg2);
+}
+
+export function UpdateNote(arg1, arg2, arg3) {
+  return window['go']['main']['App']['UpdateNote'](arg1, arg2, arg3);
 }

@@ -89,3 +89,25 @@ func (a *App) Quit() {
 func (a *App) UnlockKdbx(path string, password string) (services.KdbxGroup, error) {
 	return services.UnlockKdbx(path, password)
 }
+
+// Notes Methods
+
+func (a *App) GetNotes() []services.Note {
+	notes, err := a.db.GetNotes()
+	if err != nil {
+		return []services.Note{}
+	}
+	return notes
+}
+
+func (a *App) CreateNote(title, content string) (services.Note, error) {
+	return a.db.CreateNote(title, content)
+}
+
+func (a *App) UpdateNote(id, title, content string) error {
+	return a.db.UpdateNote(id, title, content)
+}
+
+func (a *App) DeleteNote(id string) error {
+	return a.db.DeleteNote(id)
+}

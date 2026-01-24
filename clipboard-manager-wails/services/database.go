@@ -46,6 +46,12 @@ func initSchema(db *sql.DB) error {
 		type TEXT NOT NULL,
 		timestamp DATETIME NOT NULL
 	);
+	CREATE TABLE IF NOT EXISTS notes (
+		id TEXT PRIMARY KEY,
+		title TEXT NOT NULL,
+		content TEXT NOT NULL,
+		createdAt DATETIME NOT NULL
+	);
 	`
 	_, err := db.Exec(query)
 	return err
@@ -87,4 +93,50 @@ func (s *DatabaseService) GetRecentItems(limit int) ([]ClipboardItem, error) {
 		items = append(items, item)
 	}
 	return items, nil
+}
+
+func (s *DatabaseService) GetNotes() ([]Note, error) {
+	query := `SELECT id, title, content, createdAt FROM notes ORDER BY createdAt DESC`
+	rows, err := s.db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var notes []Note
+	for rows.Next() {
+		var note Note
+		if err := rows.Scan(&note.ID, &note.Title, &note.Content, &note.CreatedAt); err != nil {
+			continue
+		}
+		notes = append(notes, note)
+	}
+	return notes, nil
+}
+
+func (s *DatabaseService) CreateNote(title, content string) (Note, error) {
+	note := Note{
+		ID:        uuid.New().String(),
+		Title:     title,
+		Content:   content,
+		CreatedAt: time.Now(),
+	}
+	query := `INSERT INTO notes (id, title, content, createdAt) VALUES (?, ?, ?, ?)`
+	_, err := s.db.Exec(query, note.ID, note.Title, note.Content, note.CreatedAt)
+	if err != nil {
+		return Note{}, err
+	}
+	return note, nil
+}
+
+func (s *DatabaseService) UpdateNote(id, title, content string) error {
+	query := `UPDATE notes SET title = ?, content = ? WHERE id = ?`
+	_, err := s.db.Exec(query, title, content, id)
+	return err
+}
+
+func (s *DatabaseService) DeleteNote(id string) error {
+	query := `DELETE FROM notes WHERE id = ?`
+	_, err := s.db.Exec(query, id)
+	return err
 }

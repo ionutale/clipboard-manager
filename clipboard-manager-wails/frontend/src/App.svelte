@@ -1,230 +1,121 @@
 <script>
-  import { onMount } from 'svelte';
-  import { GetHistory, CopyToClipboard, Quit, UnlockKdbx } from '../wailsjs/go/main/App.js';
-  import { EventsOn } from '../wailsjs/runtime/runtime.js';
-  import Tree from './Tree.svelte';
+  import ClipboardTab from './lib/ClipboardTab.svelte';
+  import PasswordsTab from './lib/PasswordsTab.svelte';
+  import NotesTab from './lib/NotesTab.svelte';
+  import { Quit } from '../wailsjs/go/main/App.js';
 
-  let history = [];
-  let searchText = '';
-  let showKdbxModal = false;
-  let kdbxPassword = '';
-  let kdbxPath = '';
-  let kdbxData = null;
+  let activeTab = 'clipboard'; // 'clipboard' | 'passwords' | 'notes'
+  let passwordInitialPath = '';
 
-  async function loadHistory() {
-    try {
-      history = (await GetHistory()) || [];
-    } catch (e) {
-      console.error(e);
-    }
+  function switchTab(tab) {
+    activeTab = tab;
   }
 
-  function handleCopy(item) {
-    if (item.type === 'kdbx') {
-      openKdbx(item);
-    } else {
-      CopyToClipboard(item);
-    }
+  function handleOpenKdbx(path) {
+    passwordInitialPath = path;
+    activeTab = 'passwords';
   }
 
   function quitApp() {
     Quit();
   }
-
-  function openKdbx(item) {
-    kdbxPath = item.content;
-    showKdbxModal = true;
-    kdbxData = null;
-    kdbxPassword = '';
-  }
-
-  async function unlock() {
-    try {
-      kdbxData = await UnlockKdbx(kdbxPath, kdbxPassword);
-    } catch (e) {
-      alert('Failed to unlock: ' + e);
-    }
-  }
-
-  function closeKdbx() {
-    showKdbxModal = false;
-  }
-
-  onMount(() => {
-    loadHistory();
-
-    // Listen for new items from backend
-    EventsOn('clipboard-new-item', (item) => {
-      // Deduplicate
-      history = history.filter((h) => h.content !== item.content);
-      history = [item, ...history];
-    });
-  });
-
-  $: filteredHistory = searchText
-    ? history.filter((h) => h.content.toLowerCase().includes(searchText.toLowerCase()))
-    : history;
 </script>
 
 <main>
-  <div class="header">
-    <input bind:value={searchText} placeholder="Search history..." />
-    <button on:click={quitApp} class="quit-btn">Quit</button>
-  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-item {activeTab === 'clipboard' ? 'active' : ''}" on:click={() => switchTab('clipboard')} title="Clipboard">
+      <span class="icon">📋</span>
+    </div>
+    <div class="nav-item {activeTab === 'passwords' ? 'active' : ''}" on:click={() => switchTab('passwords')} title="Passwords">
+      <span class="icon">🔐</span>
+    </div>
+    <div class="nav-item {activeTab === 'notes' ? 'active' : ''}" on:click={() => switchTab('notes')} title="Notes">
+      <span class="icon">📝</span>
+    </div>
+    <div class="spacer"></div>
+    <div class="nav-item quit" on:click={quitApp} title="Quit App">
+      <span class="icon">❌</span>
+    </div>
+  </nav>
 
-  <div class="list">
-    {#each filteredHistory as item}
-      <button class="item" on:click={() => handleCopy(item)}>
-        <div class="type-icon">
-          {#if item.type === 'text'}
-            📝
-          {:else if item.type === 'kdbx'}
-            🔐
-          {:else if item.type === 'image'}
-            🖼️
-          {:else}
-            📁
-          {/if}
-        </div>
-        <div class="content">
-          {#if item.type === 'image'}
-            <img src={item.content} alt="clipboard content" height="50" />
-          {:else}
-            {item.content}
-          {/if}
-        </div>
-      </button>
-    {/each}
-  </div>
-</main>
-
-{#if showKdbxModal}
-  <div class="modal-overlay">
-    <div class="modal">
-      <h3>Unlock KDBX</h3>
-      <p class="path">{kdbxPath}</p>
-      {#if !kdbxData}
-        <div class="auth-box">
-          <input
-            type="password"
-            bind:value={kdbxPassword}
-            placeholder="Master Password"
-            on:keydown={(e) => e.key === 'Enter' && unlock()}
-          />
-          <button on:click={unlock}>Unlock</button>
-        </div>
-      {:else}
-        <div class="tree-view">
-          <ul><Tree group={kdbxData} /></ul>
-        </div>
-      {/if}
-      <button on:click={closeKdbx} style="margin-top: 10px; align-self: flex-end;">Close</button>
+  <div class="content">
+    <div class="tab-content" style="display: {activeTab === 'clipboard' ? 'block' : 'none'}">
+      <ClipboardTab onOpenKdbx={handleOpenKdbx} />
+    </div>
+    <div class="tab-content" style="display: {activeTab === 'passwords' ? 'block' : 'none'}">
+      <PasswordsTab initialPath={passwordInitialPath} />
+    </div>
+    <div class="tab-content" style="display: {activeTab === 'notes' ? 'block' : 'none'}">
+      <NotesTab />
     </div>
   </div>
-{/if}
+</main>
 
 <style>
   main {
     height: 100vh;
     display: flex;
-    flex-direction: column;
-    padding: 10px;
-    background-color: #f5f5f5;
-    font-family: sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+    overflow: hidden;
   }
 
-  .header {
-    margin-bottom: 10px;
-  }
-
-  input {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-  }
-
-  .list {
-    flex: 1;
-    overflow-y: auto;
+  .sidebar-nav {
+    width: 60px;
+    background-color: #2d3748;
     display: flex;
     flex-direction: column;
-    gap: 5px;
-  }
-
-  .item {
-    display: flex;
     align-items: center;
-    padding: 8px;
-    background: white;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    cursor: pointer;
-    text-align: left;
+    padding-top: 20px;
+    color: white;
   }
 
-  .item:hover {
-    background: #eee;
-  }
-
-  .type-icon {
-    margin-right: 10px;
-    font-size: 1.2em;
-  }
-
-  /* Modal Styles */
-  .modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
+  .nav-item {
+    width: 40px;
+    height: 40px;
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 100;
-  }
-  .modal {
-    background: white;
-    padding: 20px;
+    margin-bottom: 15px;
     border-radius: 8px;
-    width: 90%;
-    max-width: 600px;
-    max-height: 80vh;
-    overflow: auto;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: background 0.2s;
+    font-size: 1.5rem;
+    opacity: 0.6;
   }
-  .path {
-    font-size: 0.8em;
-    color: #666;
+
+  .nav-item:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    opacity: 1;
+  }
+
+  .nav-item.active {
+    background-color: #4299e1;
+    opacity: 1;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  }
+
+  .spacer {
+    flex: 1;
+  }
+
+  .quit {
     margin-bottom: 20px;
-    word-break: break-all;
+    background-color: #e53e3e;
+    opacity: 1;
   }
-  .auth-box {
-    display: flex;
-    gap: 10px;
-  }
-  .tree-view {
-    overflow-y: auto;
-    text-align: left;
-    border: 1px solid #eee;
-    padding: 10px;
-    margin-bottom: 10px;
+  .quit:hover {
+    background-color: #c53030;
   }
 
   .content {
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
     flex: 1;
-    font-size: 0.9em;
+    background-color: #f7fafc;
+    overflow: hidden;
+    position: relative;
   }
 
-  img {
-    max-width: 100%;
-    object-fit: contain;
+  .tab-content {
+    height: 100%;
+    width: 100%;
   }
 </style>
