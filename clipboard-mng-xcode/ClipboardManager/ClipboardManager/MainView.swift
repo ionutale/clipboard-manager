@@ -3,6 +3,7 @@ import SwiftUI
 struct MainView: View {
     @ObservedObject var manager: ClipboardManager
     @State private var searchText = ""
+    @State private var selectedTab = 0
     
     var filteredHistory: [ClipboardItem] {
         if searchText.isEmpty {
@@ -23,21 +24,38 @@ struct MainView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            header
+            Picker("", selection: $selectedTab) {
+                Text("Clipboard").tag(0)
+                Text("Notes").tag(1)
+                Text("Passwords").tag(2)
+            }
+            .pickerStyle(.segmented)
+            .padding(10)
+            .background(Color(.controlBackgroundColor).opacity(0.5))
             
-            SearchBar(text: $searchText)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-            
-            if filteredHistory.isEmpty {
-                emptyState
+            if selectedTab == 0 {
+                VStack(spacing: 0) {
+                    header
+                    
+                    SearchBar(text: $searchText)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                    
+                    if filteredHistory.isEmpty {
+                        emptyState
+                    } else {
+                        historyList
+                    }
+                }
+            } else if selectedTab == 1 {
+                NotesView(manager: manager)
             } else {
-                historyList
+                PasswordsView(manager: manager)
             }
             
             footer
         }
-        .frame(width: 300, height: 450)
+        .frame(width: 320, height: 480)
         .background(Color(.windowBackgroundColor))
     }
     

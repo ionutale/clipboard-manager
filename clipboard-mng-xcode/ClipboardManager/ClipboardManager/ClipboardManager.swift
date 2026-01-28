@@ -1,11 +1,10 @@
 import Foundation
 import AppKit
 
-import Foundation
-import AppKit
-
 class ClipboardManager: ObservableObject {
     @Published var history: [ClipboardItem] = []
+    @Published var notes: [Note] = []
+    @Published var credentials: [Credential] = []
     
     // Dependencies
     private let dbManager = DatabaseManager.shared
@@ -19,11 +18,21 @@ class ClipboardManager: ObservableObject {
     init() {
         // Load initial history from DB
         loadHistory()
+        loadNotes()
+        loadCredentials()
         startMonitoring()
     }
     
     private func loadHistory() {
         self.history = dbManager.fetchRecent(limit: maxHistory)
+    }
+
+    private func loadNotes() {
+        self.notes = dbManager.fetchNotes()
+    }
+
+    private func loadCredentials() {
+        self.credentials = dbManager.fetchCredentials()
     }
     
     func startMonitoring() {
@@ -99,6 +108,52 @@ class ClipboardManager: ObservableObject {
     func clearHistory() {
         // TODO: Clear DB and local files too?
         history = []
+    }
+    
+    // MARK: - Notes Logic
+    
+    func addNote(title: String, content: String) {
+        let note = Note(title: title, content: content)
+        dbManager.saveNote(note)
+        loadNotes()
+    }
+    
+    func updateNote(_ note: Note, title: String, content: String) {
+        var updatedNote = note
+        updatedNote.title = title
+        updatedNote.content = content
+        updatedNote.timestamp = Date()
+        dbManager.updateNote(updatedNote)
+        loadNotes()
+    }
+    
+    func deleteNote(_ note: Note) {
+        dbManager.deleteNote(note)
+        loadNotes()
+    }
+    
+    // MARK: - Credentials Logic
+    
+    func addCredential(title: String, username: String, password: String, url: String) {
+        let credential = Credential(title: title, username: username, password: password, url: url)
+        dbManager.saveCredential(credential)
+        loadCredentials()
+    }
+    
+    func updateCredential(_ credential: Credential, title: String, username: String, password: String, url: String) {
+        var updated = credential
+        updated.title = title
+        updated.username = username
+        updated.password = password
+        updated.url = url
+        updated.timestamp = Date()
+        dbManager.updateCredential(updated)
+        loadCredentials()
+    }
+    
+    func deleteCredential(_ credential: Credential) {
+        dbManager.deleteCredential(credential)
+        loadCredentials()
     }
 }
 
