@@ -1,0 +1,410 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  ##############################################################################
+  # Linux
+  ##############################################################################
+  appimage:
+    name: AppImage (Linux x86_64)
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: clipboard-manager-qt
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Qt6 + tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq qt6-base-dev libqt6sql6-sqlite qt6-base-dev-tools cmake g++ file
+
+      - name: Build release binary
+        run: |
+          cmake -B build -DCMAKE_BUILD_TYPE=Release
+          cmake --build build --parallel $(nproc)
+
+      - name: Bundle AppImage
+        run: |
+          mkdir -p AppDir/usr/bin AppDir/usr/share/applications AppDir/usr/share/icons/hicolor/64x64/apps
+          cp build/clipboard-manager-qt AppDir/usr/bin/
+          cp assets/app_icon_64.png AppDir/usr/share/icons/hicolor/64x64/apps/
+          cat > AppDir/usr/share/applications/clipboard-manager.desktop <<EOF
+          [Desktop Entry]
+          Type=Application
+          Name=Clipboard Manager
+          Exec=clipboard-manager-qt
+          Icon=app_icon_64
+          Categories=Utility;
+          Terminal=false
+          EOF
+
+      - name: Build AppImage
+        uses: juliano-r/linuxdeployqt-action@v1
+        with:
+          appdir: clipboard-manager-qt/AppDir
+          output: ClipboardManager-x86_64.AppImage
+          extra_args: "-bundle-non-qt-libs"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ClipboardManager-x86_64.AppImage
+          path: clipboard-manager-qt/ClipboardManager-x86_64.AppImage
+
+  deb:
+    strategy:
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    name: DEB (Linux ${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    defaults:
+      run:
+        working-directory: clipboard-manager-qt
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Qt6
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq qt6-base-dev libqt6sql6-sqlite qt6-base-dev-tools cmake g++
+
+      - name: Build
+        run: |
+          cmake -B build -DCMAKE_BUILD_TYPE=Release
+          cmake --build build --parallel $(nproc)
+
+      - name: Package .deb
+        run: |
+          cd build && cpack -G DEB && mv *.deb ../ClipboardManager-linux-${{ matrix.arch }}.deb
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ClipboardManager-linux-${{ matrix.arch }}.deb
+          path: clipboard-manager-qt/ClipboardManager-linux-${{ matrix.arch }}.deb
+
+  rpm:
+    strategy:
+      matrix:
+        runner: [fedora-43, fedora-44]
+    name: RPM (${{ matrix.runner }})
+    runs-on: ${{ matrix.runner }}
+    defaults:
+      run:
+        working-directory: clipboard-manager-qt
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Qt6
+        run: sudo dnf install -y qt6-qtbase-devel qt6-qtsql-devel cmake gcc-c++
+
+      - name: Build
+        run: |
+          cmake -B build -DCMAKE_BUILD_TYPE=Release
+          cmake --build build --parallel $(nproc)
+
+      - name: Package .rpm
+        run: |
+          cd build && cpack -G RPM && mv *.rpm ../ClipboardManager-linux.rpm
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ClipboardManager-linux.rpm
+          path: clipboard-manager-qt/ClipboardManager-linux.rpm
+
+  ##############################################################################
+  # macOS
+  ##############################################################################
+  dmg-arm64:
+    name: DMG (macOS arm64)
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: clipboard-manager-qt
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Qt6
+        run: brew install qt@6
+
+      - name: Build
+        run: |
+          cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$(brew --prefix qt@6)
+          cmake --build build --parallel $(sysctl -n hw.logicalcpu)
+
+      - name: Bundle .app with macdeployqt
+        run: |
+          APP="Clipboard Manager"
+          BUNDLE="build/$APP.app"
+          mkdir -p "$BUNDLE/Contents/MacOS" "$BUNDLE/Contents/Resources"
+          cp build/clipboard-manager-qt "$BUNDLE/Contents/MacOS/$APP"
+          cp assets/app_icon_64.png "$BUNDLE/Contents/Resources/app_icon.png"
+          cat > "$BUNDLE/Contents/Info.plist" <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>CFBundleExecutable</key>
+              <string>$APP</string>
+              <key>CFBundleIdentifier</key>
+              <string>com.clipboard-manager.qt</string>
+              <key>CFBundleName</key>
+              <string>$APP</string>
+              <key>CFBundleVersion</key>
+              <string>${GITHUB_REF_NAME#v}</string>
+              <key>CFBundleShortVersionString</key>
+              <string>${GITHUB_REF_NAME#v}</string>
+              <key>CFBundlePackageType</key>
+              <string>APPL</string>
+              <key>LSUIElement</key>
+              <true/>
+          </dict>
+          </plist>
+          EOF
+          $(brew --prefix qt@6)/bin/macdeployqt "$BUNDLE" -verbose=1
+
+      - name: Create DMG
+        run: |
+          brew install create-dmg
+          create-dmg \
+            --volname "Clipboard Manager" \
+            --window-pos 200 120 --window-size 600 400 --icon-size 100 \
+            --icon "Clipboard Manager.app" 175 120 \
+            --hide-extension "Clipboard Manager.app" \
+            --app-drop-link 425 120 \
+            "build/ClipboardManager-macos-arm64.dmg" \
+            "build/Clipboard Manager.app"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ClipboardManager-macos-arm64.dmg
+          path: clipboard-manager-qt/build/ClipboardManager-macos-arm64.dmg
+
+  dmg-x86_64:
+    name: DMG (macOS x86_64)
+    runs-on: macos-13
+    defaults:
+      run:
+        working-directory: clipboard-manager-qt
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Qt6
+        run: brew install qt@6
+
+      - name: Build
+        run: |
+          cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$(brew --prefix qt@6)
+          cmake --build build --parallel $(sysctl -n hw.logicalcpu)
+
+      - name: Bundle .app with macdeployqt
+        run: |
+          APP="Clipboard Manager"
+          BUNDLE="build/$APP.app"
+          mkdir -p "$BUNDLE/Contents/MacOS" "$BUNDLE/Contents/Resources"
+          cp build/clipboard-manager-qt "$BUNDLE/Contents/MacOS/$APP"
+          cp assets/app_icon_64.png "$BUNDLE/Contents/Resources/app_icon.png"
+          cat > "$BUNDLE/Contents/Info.plist" <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>CFBundleExecutable</key>
+              <string>$APP</string>
+              <key>CFBundleIdentifier</key>
+              <string>com.clipboard-manager.qt</string>
+              <key>CFBundleName</key>
+              <string>$APP</string>
+              <key>CFBundleVersion</key>
+              <string>${GITHUB_REF_NAME#v}</string>
+              <key>CFBundleShortVersionString</key>
+              <string>${GITHUB_REF_NAME#v}</string>
+              <key>CFBundlePackageType</key>
+              <string>APPL</string>
+              <key>LSUIElement</key>
+              <true/>
+          </dict>
+          </plist>
+          EOF
+          $(brew --prefix qt@6)/bin/macdeployqt "$BUNDLE" -verbose=1
+
+      - name: Create DMG
+        run: |
+          brew install create-dmg
+          create-dmg \
+            --volname "Clipboard Manager" \
+            --window-pos 200 120 --window-size 600 400 --icon-size 100 \
+            --icon "Clipboard Manager.app" 175 120 \
+            --hide-extension "Clipboard Manager.app" \
+            --app-drop-link 425 120 \
+            "build/ClipboardManager-macos-x86_64.dmg" \
+            "build/Clipboard Manager.app"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ClipboardManager-macos-x86_64.dmg
+          path: clipboard-manager-qt/build/ClipboardManager-macos-x86_64.dmg
+
+  ##############################################################################
+  # Windows
+  ##############################################################################
+  installer:
+    name: Installer (Windows x86_64)
+    runs-on: windows-2022
+    defaults:
+      run:
+        working-directory: clipboard-manager-qt
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Qt6
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.7'
+          arch: 'win64_msvc2019_64'
+          modules: 'qtbase'
+
+      - name: Configure CMake
+        run: cmake -B build -G "Visual Studio 17 2022" -DCMAKE_BUILD_TYPE=Release -DCPACK_GENERATOR=NSIS
+
+      - name: Build
+        run: cmake --build build --config Release --parallel
+
+      - name: Package NSIS installer
+        run: cd build && cpack -G NSIS
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ClipboardManager-windows-setup.exe
+          path: clipboard-manager-qt/build/ClipboardManager-*.exe
+
+  portable:
+    name: Portable (Windows x86_64)
+    runs-on: windows-2022
+    defaults:
+      run:
+        working-directory: clipboard-manager-qt
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Qt6
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.7'
+          arch: 'win64_msvc2019_64'
+          modules: 'qtbase'
+
+      - name: Configure CMake
+        run: cmake -B build -G "Visual Studio 17 2022" -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build --config Release --parallel
+
+      - name: Package portable zip
+        run: |
+          $windeployqt = Get-ChildItem -Path "$env:Qt6_DIR\bin\windeployqt.exe" -Recurse | Select-Object -First 1
+          & $windeployqt --release build\Release\clipboard-manager-qt.exe
+          Compress-Archive -Path build\Release\* -DestinationPath build\ClipboardManager-windows-portable.zip
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ClipboardManager-windows-portable.zip
+          path: clipboard-manager-qt/build/ClipboardManager-windows-portable.zip
+
+  ##############################################################################
+  # Release — depends on all package jobs
+  ##############################################################################
+  release:
+    name: Create GitHub Release
+    needs:
+      - appimage
+      - deb
+      - rpm
+      - dmg-arm64
+      - dmg-x86_64
+      - installer
+      - portable
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Generate download links
+        id: links
+        run: |
+          REPO="${{ github.repository }}"
+          TAG="${{ github.ref_name }}"
+
+          cat > downloads.md <<EOF
+          ## Downloads
+
+          | Platform | Package | Download |
+          |---|---|---|
+          | macOS (Apple Silicon) | DMG | [ClipboardManager-macos-arm64.dmg](https://github.com/${REPO}/releases/download/${TAG}/ClipboardManager-macos-arm64.dmg) |
+          | macOS (Intel) | DMG | [ClipboardManager-macos-x86_64.dmg](https://github.com/${REPO}/releases/download/${TAG}/ClipboardManager-macos-x86_64.dmg) |
+          | Linux (x86_64) | AppImage | [ClipboardManager-x86_64.AppImage](https://github.com/${REPO}/releases/download/${TAG}/ClipboardManager-x86_64.AppImage) |
+          | Linux (x86_64) | DEB | [ClipboardManager-linux-amd64.deb](https://github.com/${REPO}/releases/download/${TAG}/ClipboardManager-linux-amd64.deb) |
+          | Linux (arm64) | DEB | [ClipboardManager-linux-arm64.deb](https://github.com/${REPO}/releases/download/${TAG}/ClipboardManager-linux-arm64.deb) |
+          | Linux (x86_64) | RPM | [ClipboardManager-linux.rpm](https://github.com/${REPO}/releases/download/${TAG}/ClipboardManager-linux.rpm) |
+          | Windows (x86_64) | Installer | [ClipboardManager-windows-setup.exe](https://github.com/${REPO}/releases/download/${TAG}/ClipboardManager-windows-setup.exe) |
+          | Windows (x86_64) | Portable | [ClipboardManager-windows-portable.zip](https://github.com/${REPO}/releases/download/${TAG}/ClipboardManager-windows-portable.zip) |
+          EOF
+
+      - name: Inject download links into README
+        run: |
+          python3 -c "
+import re
+with open('downloads.md') as f:
+    links = f.read()
+with open('README.md') as f:
+    readme = f.read()
+readme = readme.replace('<!-- DOWNLOADS -->', links.strip())
+with open('README.md', 'w') as f:
+    f.write(readme)
+"
+
+      - name: Commit updated README
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git diff --cached --quiet || git commit -m "docs: update download links for ${{ github.ref_name }}"
+          git push
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Clipboard Manager ${{ github.ref_name }}
+          body_path: downloads.md
+          files: |
+            artifacts/**/*
+          generate_release_notes: true

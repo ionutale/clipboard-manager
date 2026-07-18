@@ -6,6 +6,8 @@ Born from the frustration of losing clipboard history. Built to be invisible —
 
 **153 KB. No Electron. No JavaScript. No analytics. No network. Just your clipboard.**
 
+<!-- DOWNLOADS -->
+
 ---
 
 ## Screenshots
@@ -55,8 +57,6 @@ cmake --build build
 - **Windows**: Install Qt6 via [aqtinstall](https://github.com/miurahr/aqtinstall) or the [online installer](https://www.qt.io/download)
 
 ## Package
-
-Build for your platform:
 
 ```bash
 cmake --build build
