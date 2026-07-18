@@ -13,6 +13,7 @@ class Database : public QObject
     Q_OBJECT
 public:
     explicit Database(QObject *parent = nullptr);
+    explicit Database(const QString &dbPath, QObject *parent = nullptr);
     ~Database();
 
     void saveItem(const ClipboardItem &item);
@@ -26,8 +27,10 @@ public:
     void deleteNote(const QString &id);
 
 private:
+    static int s_connectionCounter;
     void migrate();
     QSqlDatabase m_db;
+    QString m_connectionName;
 };
 
 #endif

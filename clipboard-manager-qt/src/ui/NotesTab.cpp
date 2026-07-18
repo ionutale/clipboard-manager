@@ -53,6 +53,11 @@ NotesTab::NotesTab(Database *db, QWidget *parent)
     refreshList();
 }
 
+void NotesTab::refresh()
+{
+    refreshList();
+}
+
 void NotesTab::refreshList()
 {
     int prevRow = m_list->currentRow();

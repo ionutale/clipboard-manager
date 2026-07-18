@@ -5,17 +5,38 @@
 #include <QSqlError>
 #include <QStandardPaths>
 #include <QDir>
+#include <QFileInfo>
 #include <QDebug>
+
+int Database::s_connectionCounter = 0;
 
 Database::Database(QObject *parent)
     : QObject(parent)
+    , m_connectionName(QStringLiteral("clipboard_db_%1").arg(s_connectionCounter++))
 {
     QString dataDir = QStandardPaths::writableLocation(QStandardPaths::HomeLocation)
                       + "/.clipboard-manager";
     QDir().mkpath(dataDir);
 
-    m_db = QSqlDatabase::addDatabase("QSQLITE");
+    m_db = QSqlDatabase::addDatabase("QSQLITE", m_connectionName);
     m_db.setDatabaseName(dataDir + "/db.sqlite");
+
+    if (!m_db.open()) {
+        qWarning() << "Failed to open database:" << m_db.lastError().text();
+        return;
+    }
+
+    migrate();
+}
+
+Database::Database(const QString &dbPath, QObject *parent)
+    : QObject(parent)
+    , m_connectionName(QStringLiteral("test_db_%1").arg(s_connectionCounter++))
+{
+    QDir().mkpath(QFileInfo(dbPath).absolutePath());
+
+    m_db = QSqlDatabase::addDatabase("QSQLITE", m_connectionName);
+    m_db.setDatabaseName(dbPath);
 
     if (!m_db.open()) {
         qWarning() << "Failed to open database:" << m_db.lastError().text();
@@ -29,6 +50,7 @@ Database::~Database()
 {
     if (m_db.isOpen())
         m_db.close();
+    QSqlDatabase::removeDatabase(m_connectionName);
 }
 
 void Database::migrate()

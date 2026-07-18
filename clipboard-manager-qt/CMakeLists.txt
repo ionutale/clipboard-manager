@@ -6,11 +6,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-find_package(Qt6 6.5 REQUIRED COMPONENTS Widgets Sql)
+find_package(Qt6 6.5 REQUIRED COMPONENTS Widgets Sql Test)
 
-add_executable(clipboard-manager-qt
-    resources.qrc
-    src/main.cpp
+# Library with all sources (except main.cpp) — used by both app and tests
+add_library(clipboardmanager-lib STATIC
     src/clipboard/ClipboardMonitor.cpp
     src/database/Database.cpp
     src/ui/PopupWidget.cpp
@@ -18,11 +17,42 @@ add_executable(clipboard-manager-qt
     src/ui/NotesTab.cpp
 )
 
-target_link_libraries(clipboard-manager-qt PRIVATE
+target_link_libraries(clipboardmanager-lib PUBLIC
     Qt6::Widgets
     Qt6::Sql
 )
 
-target_include_directories(clipboard-manager-qt PRIVATE
+target_include_directories(clipboardmanager-lib PUBLIC
     ${CMAKE_SOURCE_DIR}/src
 )
+
+# Main executable
+add_executable(clipboard-manager-qt
+    resources.qrc
+    src/main.cpp
+)
+
+target_link_libraries(clipboard-manager-qt PRIVATE
+    clipboardmanager-lib
+)
+
+# Tests
+enable_testing()
+
+function(add_qt_test TEST_NAME TEST_SOURCE)
+    add_executable(${TEST_NAME} ${TEST_SOURCE})
+    target_link_libraries(${TEST_NAME} PRIVATE
+        clipboardmanager-lib
+        Qt6::Test
+    )
+    target_include_directories(${TEST_NAME} PRIVATE
+        ${CMAKE_SOURCE_DIR}/src
+    )
+    add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
+endfunction()
+
+add_qt_test(test_database tests/test_database.cpp)
+add_qt_test(test_clipboard tests/test_clipboard.cpp)
+add_qt_test(test_historytab tests/test_historytab.cpp)
+add_qt_test(test_notestab tests/test_notestab.cpp)
+add_qt_test(test_e2e tests/test_e2e.cpp)

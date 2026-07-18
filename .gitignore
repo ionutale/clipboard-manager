@@ -21,6 +21,7 @@ clipboard-manager-wails/frontend/node_modules/
 
 # Qt build output
 clipboard-manager-qt/build/
+clipboard-manager-qt/Testing/
 
 # Agent directories
 .agents/

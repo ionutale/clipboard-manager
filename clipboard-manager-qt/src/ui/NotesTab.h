@@ -15,6 +15,8 @@ class NotesTab : public QWidget
 public:
     explicit NotesTab(Database *db, QWidget *parent = nullptr);
 
+    void refresh();
+
 private slots:
     void onNoteSelected(int row);
     void onNewNote();
