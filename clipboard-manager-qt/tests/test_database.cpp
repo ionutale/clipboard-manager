@@ -3,7 +3,6 @@
 #include <QDateTime>
 #include <QUuid>
 #include "database/Database.h"
-#include "database/Note.h"
 #include "clipboard/ClipboardItem.h"
 
 class TestDatabase : public QObject
@@ -18,8 +17,6 @@ private slots:
     void searchItems();
     void deleteItem();
     void clearHistory();
-    void saveAndRetrieveNote();
-    void deleteNote();
     void limitRecentItems();
     void emptyDatabase();
 
@@ -121,51 +118,6 @@ void TestDatabase::clearHistory()
     QCOMPARE(items.size(), 0);
 }
 
-void TestDatabase::saveAndRetrieveNote()
-{
-    auto now = QDateTime::currentSecsSinceEpoch();
-    Note note = {
-        QUuid::createUuid().toString(QUuid::WithoutBraces),
-        "Test Note",
-        "This is the content",
-        now,
-        now
-    };
-    m_db->saveNote(note);
-
-    auto notes = m_db->allNotes();
-    QVERIFY(notes.size() >= 1);
-
-    bool found = false;
-    for (const auto &n : notes) {
-        if (n.id == note.id) {
-            QCOMPARE(n.title, "Test Note");
-            QCOMPARE(n.content, "This is the content");
-            found = true;
-            break;
-        }
-    }
-    QVERIFY(found);
-}
-
-void TestDatabase::deleteNote()
-{
-    auto now = QDateTime::currentSecsSinceEpoch();
-    Note note = {
-        QUuid::createUuid().toString(QUuid::WithoutBraces),
-        "To Delete",
-        "content",
-        now,
-        now
-    };
-    m_db->saveNote(note);
-    m_db->deleteNote(note.id);
-
-    auto notes = m_db->allNotes();
-    for (const auto &n : notes)
-        QVERIFY(n.id != note.id);
-}
-
 void TestDatabase::limitRecentItems()
 {
     auto now = QDateTime::currentSecsSinceEpoch();
@@ -191,9 +143,6 @@ void TestDatabase::emptyDatabase()
 
     auto items = db.recentItems(100);
     QCOMPARE(items.size(), 0);
-
-    auto notes = db.allNotes();
-    QCOMPARE(notes.size(), 0);
 
     auto search = db.searchItems("anything");
     QCOMPARE(search.size(), 0);

@@ -1,0 +1,149 @@
+name: Packaging(MacOS)
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  dmg-arm64:
+    name: Build dmg on macos-26 arm64
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: clipboard-manager-qt
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Qt6
+        run: brew install qt@6
+
+      - name: Build release binary
+        run: |
+          cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$(brew --prefix qt@6)
+          cmake --build build --parallel $(sysctl -n hw.logicalcpu)
+
+      - name: Bundle .app with macdeployqt
+        run: |
+          APP="Clipboard Manager"
+          BUNDLE="build/$APP.app"
+          mkdir -p "$BUNDLE/Contents/MacOS" "$BUNDLE/Contents/Resources"
+          cp build/clipboard-manager-qt "$BUNDLE/Contents/MacOS/$APP"
+          cp assets/app_icon_64.png "$BUNDLE/Contents/Resources/app_icon.png"
+
+          cat > "$BUNDLE/Contents/Info.plist" <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>CFBundleExecutable</key>
+              <string>$APP</string>
+              <key>CFBundleIdentifier</key>
+              <string>com.clipboard-manager.qt</string>
+              <key>CFBundleName</key>
+              <string>$APP</string>
+              <key>CFBundleVersion</key>
+              <string>${GITHUB_REF_NAME#v}</string>
+              <key>CFBundleShortVersionString</key>
+              <string>${GITHUB_REF_NAME#v}</string>
+              <key>CFBundlePackageType</key>
+              <string>APPL</string>
+              <key>LSUIElement</key>
+              <true/>
+          </dict>
+          </plist>
+          EOF
+
+          $(brew --prefix qt@6)/bin/macdeployqt "$BUNDLE" -verbose=1
+
+      - name: Create DMG
+        run: |
+          brew install create-dmg
+          create-dmg \
+            --volname "Clipboard Manager" \
+            --window-pos 200 120 \
+            --window-size 600 400 \
+            --icon-size 100 \
+            --icon "Clipboard Manager.app" 175 120 \
+            --hide-extension "Clipboard Manager.app" \
+            --app-drop-link 425 120 \
+            "build/ClipboardManager-arm64.dmg" \
+            "build/Clipboard Manager.app"
+
+      - name: Upload DMG
+        uses: actions/upload-artifact@v4
+        with:
+          name: ClipboardManager-arm64.dmg
+          path: clipboard-manager-qt/build/ClipboardManager-arm64.dmg
+
+  dmg-x86_64:
+    name: Build dmg on macos-26-intel intel
+    runs-on: macos-13
+    defaults:
+      run:
+        working-directory: clipboard-manager-qt
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Qt6
+        run: brew install qt@6
+
+      - name: Build release binary
+        run: |
+          cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$(brew --prefix qt@6)
+          cmake --build build --parallel $(sysctl -n hw.logicalcpu)
+
+      - name: Bundle .app with macdeployqt
+        run: |
+          APP="Clipboard Manager"
+          BUNDLE="build/$APP.app"
+          mkdir -p "$BUNDLE/Contents/MacOS" "$BUNDLE/Contents/Resources"
+          cp build/clipboard-manager-qt "$BUNDLE/Contents/MacOS/$APP"
+          cp assets/app_icon_64.png "$BUNDLE/Contents/Resources/app_icon.png"
+
+          cat > "$BUNDLE/Contents/Info.plist" <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>CFBundleExecutable</key>
+              <string>$APP</string>
+              <key>CFBundleIdentifier</key>
+              <string>com.clipboard-manager.qt</string>
+              <key>CFBundleName</key>
+              <string>$APP</string>
+              <key>CFBundleVersion</key>
+              <string>${GITHUB_REF_NAME#v}</string>
+              <key>CFBundleShortVersionString</key>
+              <string>${GITHUB_REF_NAME#v}</string>
+              <key>CFBundlePackageType</key>
+              <string>APPL</string>
+              <key>LSUIElement</key>
+              <true/>
+          </dict>
+          </plist>
+          EOF
+
+          $(brew --prefix qt@6)/bin/macdeployqt "$BUNDLE" -verbose=1
+
+      - name: Create DMG
+        run: |
+          brew install create-dmg
+          create-dmg \
+            --volname "Clipboard Manager" \
+            --window-pos 200 120 \
+            --window-size 600 400 \
+            --icon-size 100 \
+            --icon "Clipboard Manager.app" 175 120 \
+            --hide-extension "Clipboard Manager.app" \
+            --app-drop-link 425 120 \
+            "build/ClipboardManager-x86_64.dmg" \
+            "build/Clipboard Manager.app"
+
+      - name: Upload DMG
+        uses: actions/upload-artifact@v4
+        with:
+          name: ClipboardManager-x86_64.dmg
+          path: clipboard-manager-qt/build/ClipboardManager-x86_64.dmg

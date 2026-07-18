@@ -8,13 +8,11 @@ set(CMAKE_AUTORCC ON)
 
 find_package(Qt6 6.5 REQUIRED COMPONENTS Widgets Sql Test)
 
-# Library with all sources (except main.cpp) — used by both app and tests
 add_library(clipboardmanager-lib STATIC
     src/clipboard/ClipboardMonitor.cpp
     src/database/Database.cpp
     src/ui/PopupWidget.cpp
     src/ui/HistoryTab.cpp
-    src/ui/NotesTab.cpp
 )
 
 target_link_libraries(clipboardmanager-lib PUBLIC
@@ -26,7 +24,6 @@ target_include_directories(clipboardmanager-lib PUBLIC
     ${CMAKE_SOURCE_DIR}/src
 )
 
-# Main executable
 add_executable(clipboard-manager-qt
     resources.qrc
     src/main.cpp
@@ -36,7 +33,6 @@ target_link_libraries(clipboard-manager-qt PRIVATE
     clipboardmanager-lib
 )
 
-# Tests
 enable_testing()
 
 function(add_qt_test TEST_NAME TEST_SOURCE)
@@ -54,5 +50,4 @@ endfunction()
 add_qt_test(test_database tests/test_database.cpp)
 add_qt_test(test_clipboard tests/test_clipboard.cpp)
 add_qt_test(test_historytab tests/test_historytab.cpp)
-add_qt_test(test_notestab tests/test_notestab.cpp)
 add_qt_test(test_e2e tests/test_e2e.cpp)

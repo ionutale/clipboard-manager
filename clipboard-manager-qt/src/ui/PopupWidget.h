@@ -6,7 +6,6 @@
 class QSystemTrayIcon;
 class QTabWidget;
 class HistoryTab;
-class NotesTab;
 class ClipboardMonitor;
 class Database;
 
@@ -32,7 +31,6 @@ private:
     QSystemTrayIcon *m_trayIcon;
     QTabWidget *m_tabWidget;
     HistoryTab *m_historyTab;
-    NotesTab *m_notesTab;
     ClipboardMonitor *m_monitor;
     Database *m_db;
     bool m_visible = false;

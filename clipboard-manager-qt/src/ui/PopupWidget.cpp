@@ -1,6 +1,5 @@
 #include "PopupWidget.h"
 #include "ui/HistoryTab.h"
-#include "ui/NotesTab.h"
 #include "clipboard/ClipboardMonitor.h"
 #include "database/Database.h"
 #include <QSystemTrayIcon>
@@ -34,8 +33,6 @@ PopupWidget::PopupWidget(QWidget *parent)
     m_tabWidget = new QTabWidget(this);
     m_historyTab = new HistoryTab(m_db, this);
     m_tabWidget->addTab(m_historyTab, "History");
-    m_notesTab = new NotesTab(m_db, this);
-    m_tabWidget->addTab(m_notesTab, "Notes");
 
     auto *layout = new QVBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);

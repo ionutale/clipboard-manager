@@ -6,7 +6,6 @@
 #include <QVector>
 
 struct ClipboardItem;
-struct Note;
 
 class Database : public QObject
 {
@@ -21,10 +20,6 @@ public:
     QVector<ClipboardItem> searchItems(const QString &query, int limit = 100);
     void deleteItem(const QString &id);
     void clearHistory();
-
-    void saveNote(const Note &note);
-    QVector<Note> allNotes();
-    void deleteNote(const QString &id);
 
 private:
     static int s_connectionCounter;
