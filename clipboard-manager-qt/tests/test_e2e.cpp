@@ -7,6 +7,9 @@
 #include <QListWidget>
 #include <QTabWidget>
 #include <QSignalSpy>
+#include <QPixmap>
+#include <QScreen>
+#include <QDir>
 #include <QDateTime>
 #include <QUuid>
 #include "database/Database.h"
@@ -26,10 +29,12 @@ private slots:
     void fullClipboardFlow();
     void tabNavigation();
     void statePersistenceAcrossRefresh();
+    void captureScreenshots();
 
 private:
     QTemporaryDir *m_tempDir = nullptr;
     Database *m_db = nullptr;
+    const QString m_screenshotDir = QStringLiteral("screenshots");
 };
 
 void TestE2E::initTestCase()
@@ -37,6 +42,8 @@ void TestE2E::initTestCase()
     m_tempDir = new QTemporaryDir();
     QVERIFY(m_tempDir->isValid());
     m_db = new Database(m_tempDir->filePath("test_e2e.db"), this);
+
+    QDir().mkpath(m_screenshotDir);
 }
 
 void TestE2E::cleanupTestCase()
@@ -122,6 +129,70 @@ void TestE2E::statePersistenceAcrossRefresh()
     QCOMPARE(search->text(), "persistence");
 
     tab.close();
+}
+
+void TestE2E::captureScreenshots()
+{
+    auto now = QDateTime::currentSecsSinceEpoch();
+
+    // Seed sample clipboard data
+    QStringList samples = {
+        "git commit -m \"fix: resolve memory leak in clipboard monitor\"",
+        "npx ctx7@latest library Qt6 \"Qt6 vs GTK4 comparison\"",
+        "bre install qt@6 && cmake -B build -DCMAKE_PREFIX_PATH=$(brew --prefix qt@6)",
+        "https://github.com/ionutale/clipboard-manager",
+        "const auto step{ m_gridSize / scale };",
+    };
+    for (int i = 0; i < samples.size(); ++i) {
+        ClipboardItem item = {
+            QUuid::createUuid().toString(QUuid::WithoutBraces),
+            samples[i], "terminal", now - i * 60
+        };
+        m_db->saveItem(item);
+    }
+
+    // Screenshot 1: Popup with clipboard history and active search
+    {
+        PopupWidget popup;
+        popup.show();
+        popup.activateWindow();
+        QTest::qWait(200);
+
+        // Set search text
+        auto *tabs = popup.findChild<QTabWidget *>();
+        QVERIFY(tabs != nullptr);
+
+        auto *search = tabs->findChild<QLineEdit *>();
+        if (search) {
+            search->setText("cmake");
+            QTest::qWait(100);
+        }
+
+        // Grab and save
+        QPixmap pixmap = popup.grab();
+        QVERIFY(!pixmap.isNull());
+        bool saved = pixmap.save(m_screenshotDir + "/popup-search.png");
+        QVERIFY(saved);
+        qDebug() << "Saved screenshot:" << m_screenshotDir + "/popup-search.png"
+                 << pixmap.width() << "x" << pixmap.height();
+        popup.close();
+    }
+
+    // Screenshot 2: Full popup with all items (no search)
+    {
+        PopupWidget popup;
+        popup.show();
+        popup.activateWindow();
+        QTest::qWait(200);
+
+        QPixmap pixmap = popup.grab();
+        QVERIFY(!pixmap.isNull());
+        bool saved = pixmap.save(m_screenshotDir + "/popup-full.png");
+        QVERIFY(saved);
+        qDebug() << "Saved screenshot:" << m_screenshotDir + "/popup-full.png"
+                 << pixmap.width() << "x" << pixmap.height();
+        popup.close();
+    }
 }
 
 static QApplication *app = nullptr;
