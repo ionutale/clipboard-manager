@@ -381,16 +381,16 @@ jobs:
 
       - name: Inject download links into README
         run: |
-          python3 -c "
-import re
-with open('downloads.md') as f:
-    links = f.read()
-with open('README.md') as f:
-    readme = f.read()
-readme = readme.replace('<!-- DOWNLOADS -->', links.strip())
-with open('README.md', 'w') as f:
-    f.write(readme)
-"
+          python3 << 'EOF'
+          import re
+          with open('downloads.md') as f:
+              links = f.read()
+          with open('README.md') as f:
+              readme = f.read()
+          readme = readme.replace('<!-- DOWNLOADS -->', links.strip())
+          with open('README.md', 'w') as f:
+              f.write(readme)
+          EOF
 
       - name: Commit updated README
         run: |
