@@ -19,6 +19,13 @@ clipboard-manager-wails/build/bin/
 clipboard-manager-wails/frontend/dist/
 clipboard-manager-wails/frontend/node_modules/
 
+# Qt build output
+clipboard-manager-qt/build/
+
+# Agent directories
+.agents/
+.superpowers/
+
 # IDE
 .vscode/*
 !.vscode/extensions.json
