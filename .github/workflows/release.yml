@@ -294,6 +294,9 @@ jobs:
       - name: Build
         run: cmake --build build --config Release --parallel
 
+      - name: Install NSIS
+        run: choco install nsis -y
+
       - name: Package NSIS installer
         run: |
           cd build
@@ -354,7 +357,6 @@ jobs:
       - rpm
       - dmg-arm64
       - dmg-x86_64
-      - installer
       - portable
     runs-on: ubuntu-latest
 
