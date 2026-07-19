@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -32,7 +33,7 @@ jobs:
           cmake -B build -DCMAKE_BUILD_TYPE=Release
           cmake --build build --parallel $(nproc)
 
-      - name: Bundle AppImage
+      - name: Bundle AppDir
         run: |
           mkdir -p AppDir/usr/bin AppDir/usr/share/applications AppDir/usr/share/icons/hicolor/64x64/apps
           cp build/clipboard-manager-qt AppDir/usr/bin/
@@ -47,18 +48,23 @@ jobs:
           Terminal=false
           EOF
 
-      - name: Build AppImage
-        uses: juliano-r/linuxdeployqt-action@v1
-        with:
-          appdir: clipboard-manager-qt/AppDir
-          output: ClipboardManager-x86_64.AppImage
-          extra_args: "-bundle-non-qt-libs"
+      - name: Build AppImage with linuxdeploy
+        run: |
+          wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
+          wget -q https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage
+          chmod +x linuxdeploy-x86_64.AppImage linuxdeploy-plugin-qt-x86_64.AppImage
+          ./linuxdeploy-x86_64.AppImage \
+            --appdir AppDir \
+            --plugin qt \
+            --output appimage \
+            --desktop-file AppDir/usr/share/applications/clipboard-manager.desktop \
+            --icon-file AppDir/usr/share/icons/hicolor/64x64/apps/app_icon_64.png
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ClipboardManager-x86_64.AppImage
-          path: clipboard-manager-qt/ClipboardManager-x86_64.AppImage
+          path: clipboard-manager-qt/ClipboardManager-*.AppImage
 
   deb:
     strategy:
@@ -66,8 +72,6 @@ jobs:
         include:
           - arch: amd64
             runner: ubuntu-24.04
-          - arch: arm64
-            runner: ubuntu-24.04-arm
     name: DEB (Linux ${{ matrix.arch }})
     runs-on: ${{ matrix.runner }}
     defaults:
@@ -279,20 +283,23 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install Qt6
-        uses: jurplel/install-qt-action@v4
+        uses: jurplel/install-qt-action@v3
         with:
           version: '6.7'
           arch: 'win64_msvc2019_64'
-          modules: 'qtbase'
 
       - name: Configure CMake
-        run: cmake -B build -G "Visual Studio 17 2022" -DCMAKE_BUILD_TYPE=Release -DCPACK_GENERATOR=NSIS
+        run: cmake -B build -G "Visual Studio 17 2022" -DCMAKE_BUILD_TYPE=Release
 
       - name: Build
         run: cmake --build build --config Release --parallel
 
       - name: Package NSIS installer
-        run: cd build && cpack -G NSIS
+        run: |
+          cd build
+          cpack -G NSIS
+          dir *.exe
+        shell: pwsh
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -311,11 +318,10 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install Qt6
-        uses: jurplel/install-qt-action@v4
+        uses: jurplel/install-qt-action@v3
         with:
           version: '6.7'
           arch: 'win64_msvc2019_64'
-          modules: 'qtbase'
 
       - name: Configure CMake
         run: cmake -B build -G "Visual Studio 17 2022" -DCMAKE_BUILD_TYPE=Release
@@ -325,9 +331,9 @@ jobs:
 
       - name: Package portable zip
         run: |
-          $windeployqt = Get-ChildItem -Path "$env:Qt6_DIR\bin\windeployqt.exe" -Recurse | Select-Object -First 1
-          & $windeployqt --release build\Release\clipboard-manager-qt.exe
+          & "C:\Qt\6.7\msvc2019_64\bin\windeployqt.exe" --release build\Release\clipboard-manager-qt.exe
           Compress-Archive -Path build\Release\* -DestinationPath build\ClipboardManager-windows-portable.zip
+        shell: pwsh
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -359,7 +365,6 @@ jobs:
           path: artifacts
 
       - name: Generate download links
-        id: links
         run: |
           REPO="${{ github.repository }}"
           TAG="${{ github.ref_name }}"
@@ -373,7 +378,6 @@ jobs:
           | macOS (Intel) | DMG | [ClipboardManager-macos-x86_64.dmg](https://github.com/${REPO}/releases/download/${TAG}/ClipboardManager-macos-x86_64.dmg) |
           | Linux (x86_64) | AppImage | [ClipboardManager-x86_64.AppImage](https://github.com/${REPO}/releases/download/${TAG}/ClipboardManager-x86_64.AppImage) |
           | Linux (x86_64) | DEB | [ClipboardManager-linux-amd64.deb](https://github.com/${REPO}/releases/download/${TAG}/ClipboardManager-linux-amd64.deb) |
-          | Linux (arm64) | DEB | [ClipboardManager-linux-arm64.deb](https://github.com/${REPO}/releases/download/${TAG}/ClipboardManager-linux-arm64.deb) |
           | Linux (x86_64) | RPM | [ClipboardManager-linux.rpm](https://github.com/${REPO}/releases/download/${TAG}/ClipboardManager-linux.rpm) |
           | Windows (x86_64) | Installer | [ClipboardManager-windows-setup.exe](https://github.com/${REPO}/releases/download/${TAG}/ClipboardManager-windows-setup.exe) |
           | Windows (x86_64) | Portable | [ClipboardManager-windows-portable.zip](https://github.com/${REPO}/releases/download/${TAG}/ClipboardManager-windows-portable.zip) |
