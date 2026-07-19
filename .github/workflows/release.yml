@@ -331,7 +331,9 @@ jobs:
 
       - name: Package portable zip
         run: |
-          & "C:\Qt\6.7\msvc2019_64\bin\windeployqt.exe" --release build\Release\clipboard-manager-qt.exe
+          $qtBin = Join-Path $env:Qt6_DIR "bin"
+          $windeployqt = Get-ChildItem -Path $qtBin -Filter "windeployqt*" -Recurse | Select-Object -First 1
+          & $windeployqt --release build\Release\clipboard-manager-qt.exe
           Compress-Archive -Path build\Release\* -DestinationPath build\ClipboardManager-windows-portable.zip
         shell: pwsh
 

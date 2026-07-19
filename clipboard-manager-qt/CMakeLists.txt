@@ -33,6 +33,14 @@ target_link_libraries(clipboard-manager-qt PRIVATE
     clipboardmanager-lib
 )
 
+# Packaging
+set(CPACK_PACKAGE_NAME "ClipboardManager")
+set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
+set(CPACK_PACKAGE_VENDOR "clipboard-manager")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "A lightweight clipboard manager")
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "clipboard-manager")
+include(CPack)
+
 enable_testing()
 
 function(add_qt_test TEST_NAME TEST_SOURCE)
