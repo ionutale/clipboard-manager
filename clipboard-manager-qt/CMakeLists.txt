@@ -6,16 +6,19 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Widgets Sql Test)
+find_package(Qt6 6.5 REQUIRED COMPONENTS Quick Qml Widgets Sql Test)
 
+# Backend library — used by both app and tests
 add_library(clipboardmanager-lib STATIC
     src/clipboard/ClipboardMonitor.cpp
     src/database/Database.cpp
-    src/ui/PopupWidget.cpp
-    src/ui/HistoryTab.cpp
+    src/ui/TrayManager.cpp
+    src/models/ClipboardListModel.cpp
 )
 
 target_link_libraries(clipboardmanager-lib PUBLIC
+    Qt6::Quick
+    Qt6::Qml
     Qt6::Widgets
     Qt6::Sql
 )
@@ -24,6 +27,7 @@ target_include_directories(clipboardmanager-lib PUBLIC
     ${CMAKE_SOURCE_DIR}/src
 )
 
+# Main executable
 add_executable(clipboard-manager-qt
     resources.qrc
     src/main.cpp
@@ -41,6 +45,7 @@ set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "A lightweight clipboard manager")
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "clipboard-manager")
 include(CPack)
 
+# Tests
 enable_testing()
 
 function(add_qt_test TEST_NAME TEST_SOURCE)
@@ -57,5 +62,3 @@ endfunction()
 
 add_qt_test(test_database tests/test_database.cpp)
 add_qt_test(test_clipboard tests/test_clipboard.cpp)
-add_qt_test(test_historytab tests/test_historytab.cpp)
-add_qt_test(test_e2e tests/test_e2e.cpp)

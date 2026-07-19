@@ -1,6 +1,10 @@
 #include <QApplication>
+#include <QQmlApplicationEngine>
+#include <QQmlContext>
 #include <QIcon>
-#include "ui/PopupWidget.h"
+#include "database/Database.h"
+#include "ui/TrayManager.h"
+#include "models/ClipboardListModel.h"
 
 int main(int argc, char *argv[])
 {
@@ -14,7 +18,30 @@ int main(int argc, char *argv[])
         appIcon = QIcon::fromTheme("edit-paste");
     app.setWindowIcon(appIcon);
 
-    PopupWidget popup;
+    Database db;
+    ClipboardListModel clipboardModel(&db);
+    TrayManager tray(&db);
+
+    QQmlApplicationEngine engine;
+    engine.rootContext()->setContextProperty("clipboardModel", &clipboardModel);
+
+    engine.addImportPath("qrc:/");
+
+    engine.load(QUrl("qrc:/ClipboardManager/Popup.qml"));
+
+    if (engine.rootObjects().isEmpty())
+        return -1;
+
+    QObject *root = engine.rootObjects().first();
+
+    QObject::connect(&tray, &TrayManager::toggleRequested, [root]() {
+        QMetaObject::invokeMethod(root, "toggle");
+    });
+
+    QObject::connect(&clipboardModel, &ClipboardListModel::countChanged, [root]() {
+        if (!root->property("visible").toBool())
+            QMetaObject::invokeMethod(root, "showPopup");
+    });
 
     return app.exec();
 }

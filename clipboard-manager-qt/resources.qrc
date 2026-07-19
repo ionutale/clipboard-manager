@@ -1,5 +1,8 @@
 <RCC>
     <qresource prefix="/">
         <file>assets/app_icon_64.png</file>
+        <file alias="ClipboardManager/Popup.qml">src/qml/Popup.qml</file>
+        <file alias="ClipboardManager/ClipboardSearchField.qml">src/qml/ClipboardSearchField.qml</file>
+        <file alias="ClipboardManager/ClipboardItemDelegate.qml">src/qml/ClipboardItemDelegate.qml</file>
     </qresource>
 </RCC>
